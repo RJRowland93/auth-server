@@ -1,5 +1,8 @@
 const router = require("express").Router;
 
+const assembleAuthHeader = require("../middleware/assembleAuthHeader");
+const isAuth = require("../middleware/isAuth");
+
 const userModel = require("../../models/user");
 
 const route = router();
@@ -11,6 +14,10 @@ module.exports = function(app) {
     const { name } = req.params;
     const user = userModel.create(name);
     res.send(user);
+  });
+
+  route.get("/test", assembleAuthHeader, isAuth, (req, res) => {
+    res.send("made it");
   });
 
   route.get("/:id", (req, res) => {

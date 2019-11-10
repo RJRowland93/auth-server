@@ -9,9 +9,7 @@ module.exports = function(app) {
   app.use("/auth", route);
 
   route.get("/signup", authService.signup);
-  route.get("/login", authService.login);
-  route.get("/logout", authService.logout);
-  route.get("/test", isAuth, (req, res) =>
-    res.json({ hello: "world", isAuth: req.isAuth, isResAuth: res.isAuth })
-  );
+  route.get("/signin", authService.signin);
+  route.get("/signout", authService.signout);
+  route.get("/test", isAuth, (req, res) => res.json({ hello: "world", res }));
 };

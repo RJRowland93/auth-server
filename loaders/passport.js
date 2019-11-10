@@ -1,52 +1,37 @@
 const passport = require("passport");
-const LocalStrategy = require("passport-local").Strategy;
-const JWTStrategy = require("passport-jwt").Strategy;
-const bcrypt = require("bcrypt");
+const { Strategy, ExtractJwt } = require("passport-jwt");
 
-const { secret } = require("./keys");
+const secret = "chuy";
 
-const UserModel = require("./models/user");
+const UserModel = require("../models/user");
 
-passport.use(
-  new LocalStrategy(
-    {
-      usernameField: username,
-      passwordField: password
-    },
-    async (username, password, done) => {
-      try {
-        const userDocument = await UserModel.findOne({
-          username: username
-        }).exec();
-        const passwordsMatch = await bcrypt.compare(
-          password,
-          userDocument.passwordHash
-        );
-
-        if (passwordsMatch) {
-          return done(null, userDocument);
-        } else {
-          return done("Incorrect Username / Password");
+module.exports = function() {
+  passport.use(
+    new Strategy(
+      {
+        jwtFromRequest: ExtractJwt.fromHeader("Authorization"),
+        secretOrKey: secret
+      },
+      (jwtPayload, done) => {
+        if (Date.now() > jwtPayload.expires) {
+          return done("jwt expired");
         }
-      } catch (error) {
-        done(error);
-      }
-    }
-  )
-);
+        const user = UserModel.findById(jwtPayload.useruuid);
+        if (!user) {
+          return done(null, false);
+        }
 
-passport.use(
-  new JWTStrategy(
-    {
-      jwtFromRequest: req => req.cookies.jwt,
-      secretOrKey: secret
+        return done(null, jwtPayload);
+      }
+    )
+  );
+
+  return {
+    initialize: function() {
+      return passport.initialize();
     },
-    (jwtPayload, done) => {
-      if (Date.now() > jwtPayload.expires) {
-        return done("jwt expired");
-      }
-
-      return done(null, jwtPayload);
+    authenticate: function() {
+      return passport.authenticate("jwt", { session: false });
     }
-  )
-);
+  };
+};

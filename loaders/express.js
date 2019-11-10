@@ -5,11 +5,13 @@ const morgan = require("morgan");
 // const User = require("./models/user");
 const uuidv4 = require("uuid/v4");
 const routes = require("../api");
+const passport = require("./passport")();
 
 module.exports = app => {
   app.use(morgan("dev"));
-  app.use(bodyParser.urlencoded({ extended: true }));
   app.use(cookieParser());
+  app.use(bodyParser.urlencoded({ extended: true }));
+  app.use(passport.initialize());
 
   app.use("/api", routes());
 
